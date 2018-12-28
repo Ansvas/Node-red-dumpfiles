@@ -1,0 +1,204 @@
+<html>
+  <body onload="fooo()">
+    <h1 id='tag'>Thanks for signing up!Enter Roles Details</h1>
+    <button class="btn" onclick="createformid()"><i class="fa fa-bars"></i> Add Row</button>
+    <div id="screen"> </div>
+    <br>
+    <button id="submit" onclick="submit()">Save Configuration</button>
+    <button id="submit" onclick="retriveconfig()">go to users page</button>
+    <script>
+      var db;
+      var result;
+      var divid;
+      var finalresult;
+
+      function createformid()
+      {
+        var cnt=Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+        createform(cnt);
+      }
+      function fooo(){
+        opendb();
+        retrivedata();              
+      }
+      function createform(id) {
+        var cnt=id;
+       // console.log(id);
+        var x = document.getElementById("screen");
+        var createform = document.createElement('div');
+        createform.setAttribute("id","div"+cnt); // Create New Element Form
+        x.appendChild(createform);
+        var line = document.createElement('hr'); // Giving Horizontal Row After Heading
+        createform.appendChild(line);
+        var lable_label = document.createElement('label'); // Create Label for Lable Field
+        lable_label.innerHTML = "Lable : "; // Set Field Labels
+        createform.appendChild(lable_label);
+
+        var inputelement = document.createElement('input'); // Create Input Field for Lable
+        inputelement.setAttribute("id","lable"+cnt);
+        createform.appendChild(inputelement);
+
+        var namelabel = document.createElement('label'); // Create Label for name Field
+        namelabel.innerHTML = "name : ";
+        createform.appendChild(namelabel);
+
+        var nameelement = document.createElement('input'); // Create Input Field for name
+        nameelement.setAttribute("id","name"+cnt);
+        createform.appendChild(nameelement);
+
+        var savebtn = document. createElement("button");
+        savebtn. innerHTML = "save"; // Append Submit Button
+        savebtn.setAttribute("id","submit"+cnt);
+        savebtn.setAttribute("onclick","savedata(this.id)");
+        createform.appendChild(savebtn);
+
+        var resetbutton = document. createElement("button");
+        resetbutton. innerHTML = "reset"; // Append Submit Button
+        resetbutton.setAttribute("id","reset"+cnt);
+        resetbutton.setAttribute("onclick","reset(this.id)");
+        createform.appendChild(resetbutton);
+       
+        var deletebutton = document. createElement("button");
+        deletebutton. innerHTML = "delete"; // Append Submit Button
+        deletebutton.setAttribute("onclick", "delform(this.id)");
+        deletebutton.setAttribute("id","delete"+cnt);
+        createform.appendChild(deletebutton);
+      }  
+
+      function submit()
+      {
+        result=opendb();
+        //result=createtabletemp();
+        db.transaction(function(tx){
+          tx.executeSql("select * from temp",[],function(tx,result)
+          {
+            finalresult=result;
+            var foo ='<html><body><h1>hey user page started!!</h1></br><hr>';
+            for(var i=0;i<finalresult.rows.length;++i)
+            {
+              if(i!=finalresult.rows.length-1)
+              {
+              if(finalresult.rows[i].lable!=finalresult.rows[i+1])
+              foo +='<div>'
+              foo +='<label for="male">'+finalresult.rows[i].lable+'</label>';
+              foo +='<input id="input" value='+finalresult.rows[i].name+'>';
+              foo +='</div>';
+            }
+
+            }
+            foo +='</body></html>';
+            console.log(foo);
+            //create_table_config();
+            saveconfig(foo);
+          });
+        });
+      }
+
+      function opendb(){
+        db = openDatabase('mydb', '1.0', 'my first database', 2 * 1024 * 1024);
+        return "true";
+      }
+
+      function retrivedata(){
+        db.transaction(function(tx){
+          tx.executeSql("select * from temp",[],function(tx,result)
+          {
+            for(var i=0;i<result.rows.length;++i)
+            {
+              createform(result.rows[i].id);
+              document.getElementById("lable"+result.rows[i].id).value=result.rows[i].lable;
+              document.getElementById("name"+result.rows[i].id).value=result.rows[i].name; 
+              document.getElementById("lable"+result.rows[i].id).readOnly=true; 
+              document.getElementById("name"+result.rows[i].id).readOnly=true; 
+              console.log(result.rows[i].id);              
+            }
+          });
+        });
+      }
+
+      function savedata(id){
+        var length=id.length;
+        var nid= id.substring("6",length);
+        name=document.getElementById("name"+nid).value;
+        lable=document.getElementById("lable"+nid).value;
+        db.transaction(function (tx) {
+        tx.executeSql('INSERT INTO temp (id, lable, name)  VALUES (?, ?, ?)', [nid, lable, name]);
+        });
+        document.getElementById("name"+nid).readOnly = true;
+        document.getElementById("lable"+nid).readOnly=true;
+      }
+
+
+      function saveconfig(foo){
+        id=Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+        db.transaction(function (tx) {
+        tx.executeSql('INSERT INTO config_manage (cpuid,web)  VALUES (?,?)', [id,foo]);
+        console.log("done with the save config");
+        });
+      }
+
+      function retriveconfig(){
+        db.transaction(function(tx){
+          tx.executeSql("select * from config_manage",[],function(tx,result)
+          {
+            length=result.rows.length;
+            for(var i=0;i<result.rows.length;++i)
+            console.log("in retriveconfig"+result.rows[i].web);
+            var newWin = window.open('','_blank');
+            console.log(newWin);
+            newWin.document.body.innerHTML = result.rows[length-1].web;
+          });
+        });
+      }
+
+      function ct_temp(){
+        db.transaction(function (tx){
+          tx.executeSql("create table temp(id REAL UNIQUE, lable TEXT,name TEXT)",[],function(result){
+            return result;
+          });
+        });
+      }
+
+      function ct_master(){
+        db.transaction(function (tx){
+          tx.executeSql("create table master(id REAL UNIQUE, cpname TEXT,role TEXT)",[],function(result){
+            return result;
+          });
+        });
+      }
+
+      function ct_detail_master(){
+        db.transaction(function (tx){
+          tx.executeSql("create table detail_temp(detailid REAL UNIQUE, id REAL,fixedfield TEXT,fixedfieldtext TEXT, CONSTRAINT fk_id FOREIGN KEY (id) REFERENCES master(id))",[],function(result){
+            return result;
+          });
+        });
+      }
+
+      function create_table_config(){
+        db.transaction(function (tx){
+          tx.executeSql("create table config_manage(cpuid REAL UNIQUE,web BLOB)",[],function(result){
+          });
+        });
+      }
+
+      function delform(id) {
+        nid=id.substring(6,id.length);//delete entry from database first
+        result=opendb();
+        db.transaction(function (tx){
+          tx.executeSql("delete from temp where id=? ",[nid]);
+        });
+        var nid= id.substring("6",id.length);
+        var x= document.getElementById("div"+nid);
+        x.style.display = "none";
+      }
+
+      function reset(id){
+        var length=id.length;
+        var nid= id.substring("5",length);
+        document.getElementById("name"+nid).value="";
+        document.getElementById("lable"+nid).value="";
+      }
+    </script>
+  </body>
+</html>

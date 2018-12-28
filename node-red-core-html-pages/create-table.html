@@ -1,0 +1,38 @@
+<html>
+	<head>
+		<script type="text/javascript">
+			function createTable()
+			{
+			  var rows=document.getElementById('no_rows').value;
+			  tbl = document.createElement('table');
+              tbl.style.width = '100px';
+			  var col=document.getElementById('no_column').value;
+			  var maintablediv=document.getElementById('tablediv');
+			  for(count=0;count<=rows;count++)
+			  {
+			  	var tr = tbl.insertRow();
+			  	for(count1=0;count1<=col;count1++)
+			  	{
+			  		var td = tr.insertCell();
+			  		input=document.createElement('input');
+			  		input.setAttribute('id','r'+count+'c'+count1);
+			  		td.appendChild(input); 
+			  	}
+			  }
+			  maintablediv.appendChild(tbl);
+			  console.log("done with the function");
+			}
+		</script>
+	</head>
+	<body>
+		<div id="main">
+		<label>enter no of rows</label>
+		<input id="no_rows"/>
+		<label>enter no of columns</label>
+		<input id="no_column"/>
+		<button id="createTable" onclick="createTable()">Create Table</button>
+		<div id="tablediv">
+		</div>
+	</div>
+	</body>
+</html>

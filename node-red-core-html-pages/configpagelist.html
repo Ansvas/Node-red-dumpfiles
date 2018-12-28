@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title></title>
+	<script type="text/javascript">
+		var ws;
+		var data;
+        var wsUri = "ws:";
+        var loc = window.location;
+        console.log(loc);
+        if (loc.protocol === "https:") { wsUri = "wss:"; }
+        wsUri += "//" + loc.host + loc.pathname.replace("configpages","ws/configpages");
+
+		function getdata()
+		{
+			console.log("connect",wsUri);
+            ws = new WebSocket(wsUri);
+			/*code to connect with web socket*/
+            
+            ws.onopen = function() {
+                console.log("connected");
+                var varonload="onload";    	        	
+	        	ws.send(varonload);   
+	            ws.onmessage = function(msg) {
+	                data = JSON.parse(msg.data);
+	                console.log(data);
+	                console.log(data.length);
+					globaldiv=document.getElementById('pages');
+					data.forEach(function(name){
+						cnt=name.cpuid;
+						var localdiv=document.createElement('div');
+						var line = document.createElement('hr'); // Giving Horizontal Row After Heading
+        				localdiv.appendChild(line);
+						var lable = document.createElement('lable');
+						localdiv.appendChild(lable);
+						lable.innerHTML += 'Name:'+name.cpname+',Version:'+name.ver+',Active:'+name.cpactive+'  ';
+						var button=document.createElement('button');
+						button. innerHTML = "See Generated html Page"; // Append Submit Button
+				        button.setAttribute("id","blob"+cnt);
+				        button.setAttribute("onclick","retrive_blob(cnt)")
+						localdiv.appendChild(button);
+						globaldiv.appendChild(localdiv);
+					});
+					if(data.length===0)
+					{
+						var lable=document.createElement('lable');
+						var line = document.createElement('hr'); // Giving Horizontal Row After Heading
+        				globaldiv.appendChild(line);
+						lable.innerHTML='No data Available';
+						globaldiv.appendChild(lable);
+					}
+				}       
+            }
+
+            ws.onclose = function() {
+                console.log("not connected");
+                setTimeout(wsConnect,3000);
+            }
+		}
+        
+        function retrive_blob(id)
+        {
+            console.log(data);
+        	console.log(id);
+        	//send this id to the database and waiting for response
+        	for(var count=0;count<data.length;++count)
+        	{
+        		if(id===data[count].cpuid)
+        		{
+        			var webcontent=data[count].webPage;
+        			webcontent1=webcontent.replace(/""/g,'"');
+        			var newWin = window.open('','_blank');
+	           		console.log(newWin);
+	           		newWin.document.body.innerHTML = webcontent1;
+        		}
+        	}	            
+      	}
+
+		function createform()
+		{ 
+			cnt=Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+			var x = document.getElementById("screen");
+	        var createform = document.createElement('form');
+	        createform.setAttribute("id","div"+cnt);
+	        createform.setAttribute("action","/simple");
+	        createform.setAttribute("method","post");
+	        x.appendChild(createform);
+
+	        var line = document.createElement('hr'); // Giving Horizontal Row After Heading
+        	createform.appendChild(line);
+
+	        var name_label = document.createElement('label'); // Create Label for Lable Field
+	        name_label.innerHTML = "Enter the name of Config Page "; // Set Field Labels
+	        createform.appendChild(name_label);
+
+	        var inputelement = document.createElement('input');
+	        inputelement.setAttribute("type","text"); // Create Input Field for Lable
+	        inputelement.setAttribute("id","configname"+cnt);
+	        inputelement.setAttribute("name","cpname");
+	        createform.appendChild(inputelement);
+
+	        var ver_label = document.createElement('label'); // Create Label for Lable Field
+	        ver_label.innerHTML = "Enter the version of Config Page "; // Set Field Labels
+	        createform.appendChild(ver_label);
+
+	        var ver_name = document.createElement('input');
+	        ver_name.setAttribute("type","text"); // Create Input Field for Lable
+	        ver_name.setAttribute("id","configver"+cnt);
+	        ver_name.setAttribute("name","cpver");
+	        createform.appendChild(ver_name);
+
+	        var submitbtn = document. createElement("button");
+	        submitbtn. innerHTML = "submit"; // Append Submit Button
+	        submitbtn.setAttribute("id","submit"+cnt);
+	        submitbtn.setAttribute("type","submit");
+	        submitbtn.setAttribute("name","submitcpname");
+	        submitbtn.setAttribute("value","submit"+cnt);
+	        createform.appendChild(submitbtn);
+		}
+	</script>
+</head>
+<body onload="getdata()">
+		<button onclick="createform()">Create Configuration Page</button>
+		<div id="screen"></div>
+		<br><br><label>List of Available Pages</label>
+		<div id="pages"></div>
+
+<div id="cp-div"></div>
+</body>
+</html>

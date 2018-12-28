@@ -1,0 +1,213 @@
+<!-- makeconfig -->
+<html>
+    <head>
+        <script type="text/javascript">
+        var ws;
+        var wsUri = "ws:";
+        var loc = window.location;
+        var alldiv =[];
+        console.log(loc);
+        if (loc.protocol === "https:") { wsUri = "wss:"; }
+        // This needs to point to the web socket in the Node-RED flow
+        // ... in this case it's ws/simple
+        wsUri += "//" + loc.host + loc.pathname.replace("simple","ws/makecp");
+
+        function wsConnect() {
+            console.log("connect",wsUri);
+            ws = new WebSocket(wsUri);
+            ws.onopen = function() {
+                console.log("connected");
+            }
+            ws.onclose = function() {
+                console.log("not connected");
+                setTimeout(wsConnect,3000);
+            }
+        }
+
+        function createform(id) {
+          var cnt=id;
+          alldiv.push(cnt);
+          var x = document.getElementById("screen");
+
+          var createform = document.createElement('div');
+          createform.setAttribute("id","div"+cnt);
+          x.appendChild(createform);
+          var line = document.createElement('hr'); // Giving Horizontal Row After Heading
+          createform.appendChild(line);
+          var lable_label = document.createElement('label'); // Create Label for Lable Field
+          lable_label.innerHTML = "Label : "; // Set Field Labels
+          createform.appendChild(lable_label);
+
+          var inputelement = document.createElement('input'); // Create Input Field for Lable
+          inputelement.setAttribute("id","lable"+cnt);
+          createform.appendChild(inputelement);
+
+          var namelabel = document.createElement('label'); // Create Label for name Field
+          namelabel.innerHTML = " Name : ";
+          createform.appendChild(namelabel);
+
+          var nameelement = document.createElement('input'); // Create Input Field for name
+          nameelement.setAttribute("id","name"+cnt);
+          createform.appendChild(nameelement);
+
+          var resetbutton = document. createElement("button");
+          resetbutton. innerHTML = "reset"; // Append Submit Button
+          resetbutton.setAttribute("id","reset"+cnt);
+          resetbutton.setAttribute("onclick","reset(this.id)");
+          createform.appendChild(resetbutton);
+         
+          var deletebutton = document. createElement("button");
+          deletebutton. innerHTML = "delete"; // Append Submit Button
+          deletebutton.setAttribute("id","delete"+cnt);
+          deletebutton.setAttribute("onclick","deletediv(this.id)");
+          createform.appendChild(deletebutton);
+        }
+        
+        function deletediv(m) {
+          var nid= m.substring("6",m.length);
+          var x= document.getElementById("div"+nid);
+          x.style.display = "none";
+          for(var count=0;count<alldiv.length;count++)
+          {
+            if(nid=alldiv[count])
+            {
+              alldiv.splice(count,1);
+              break;
+            }
+          }
+        }
+
+      function createformid()
+      {
+        var cnt=Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+        createform(cnt);
+      } 
+
+      function submit()
+      {
+        //send this generated data to ws/makecp
+        //generate dynamic html page
+        //on closing of select make a button
+        //on opening of select make div id
+        //var count_dropdown is used to find out the no of dropdwons
+        var count_dropdown=0;
+        console.log("all div"+alldiv.length);
+            var htmlcontent ='<html><head><script>function addrow(id){console.log(id);var count_dropdown =id.substr(8,id.length);console.log("parentdd"+count_dropdown+"div");var div=document.getElementById("parentdd"+count_dropdown+"div");newdiv = div.cloneNode(true);div.parentNode.appendChild(newdiv);}<\/script></head><body><h1>hey user page started!!</h1></br><hr>';
+            //count is used to find out the dropdown status(still adding elements or ended )
+        var count=0;
+        //copy div is used to find out the copy of division created
+        var copy_div=0;
+        for(var i=0;i<alldiv.length;++i)
+        {
+          if(i<alldiv.length-1)
+          {
+            //if current and the next field is not equal
+            if((document.getElementById("lable"+alldiv[i]).value).trim()!=(document.getElementById("lable"+alldiv[i+1]).value).trim())
+            {
+              if(count===0)
+              {
+                htmlcontent +='<div>';
+                htmlcontent +='<label for="male">'+document.getElementById("lable"+alldiv[i]).value+'</label>';
+                htmlcontent +='<input id="input" value="'+document.getElementById("name"+alldiv[i]).value+'">';
+                htmlcontent +='</div>';
+              }
+              if(count!=0)
+              {
+                htmlcontent +='<option value="'+document.getElementById("name"+alldiv[i]).value+'">';
+                htmlcontent +=document.getElementById("name"+alldiv[i]).value+'</option>';
+                htmlcontent +='</select><input /><button id="parentdd'+count_dropdown+'" onclick="addrow(this.id)">Add Entity</button></div>';
+                count=0;
+              }
+            }
+            // if the current value and next value field is equal
+            if((document.getElementById("lable"+alldiv[i]).value).trim()==(document.getElementById("lable"+alldiv[i+1]).value).trim())
+            {
+                //do something with htmlcontent
+                if(count===0)
+                {
+                  count_dropdown++;
+                  htmlcontent +='<div id="parentdd'+count_dropdown+'div">';
+                  htmlcontent +=document.getElementById("lable"+alldiv[i]).value+'</label>';
+                  htmlcontent +='<select>';
+                  count=count+1;
+                }
+                htmlcontent +='<option value="'+document.getElementById("name"+alldiv[i]).value+'">';
+                htmlcontent +=document.getElementById("name"+alldiv[i]).value+'</option>';
+            }
+          }
+          if(i==alldiv.length-1)
+          {
+            if((document.getElementById("lable"+alldiv[i-1]).value).trim()==(document.getElementById("lable"+alldiv[i]).value).trim())
+            {
+              //do something with htmlcontent
+              htmlcontent +='<option value="'+document.getElementById("name"+alldiv[i]).value+'">';
+              htmlcontent +=document.getElementById("name"+alldiv[i]).value+'</option>';
+              htmlcontent +='</select><input placeholder="enter contact id/no"/><input placeholder="message Body"/><input placeholder="image url"/><input placeholder="video url"/><button id="parentdd'+count_dropdown+'" onclick="addrow(this.id)">Add Entity</button></div>';
+                count=0;
+            }
+            else{
+              //DO something with htmlcontent
+              htmlcontent +='<div>';
+              htmlcontent +='<label>'+document.getElementById("lable"+alldiv[i]).value+'</label>';
+              htmlcontent +='<input id="input" value="'+document.getElementById("name"+alldiv[i]).value+'">';
+              htmlcontent +='</div>';
+            }
+          }
+        }
+            htmlcontent +='</body></html>';
+            console.log(htmlcontent);
+            //create_table_config();
+            saveconfig(htmlcontent);
+      }
+
+      function saveconfig(htmlcontent){
+        cnt=Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+        if(ws)
+        {
+          var htmlcontent1=htmlcontent.replace(/"/g,'""');
+          m={blobcode:htmlcontent1,cpuid:cnt};
+          c=JSON.stringify(m);
+          ws.send(c);
+        }
+        for(var count=0;count<alldiv.length;++count)
+        {
+          document.getElementById("reset"+alldiv[count]).disable=true;
+          document.getElementById("delete"+alldiv[count]).disable=true;
+          document.getElementById("name"+alldiv[count]).readOnly = true;
+          document.getElementById("lable"+alldiv[count]).readOnly=true;
+        }
+        document.getElementById("save_config_btn").disable=true;
+        document.getElementById("add_row_btn").disable=true;
+      }
+
+      function reset(id){
+        var length=id.length;
+        var nid= id.substring("5",length);
+        document.getElementById("name"+nid).value="";
+        document.getElementById("lable"+nid).value="";
+      }
+
+      function backtohome()
+      {
+        window.open('', 'TheWindow');
+        document.getElementById('TheForm').submit();
+      }
+    </script>
+
+    </head>
+    <body onload="wsConnect();" onunload="ws.disconnect();">
+    <h1 id='tag'>Welcome To The NodeRed Configuration Manager</h1>
+    <button class="btn" onclick="createformid()" id="add_row_btn"><i class="fa fa-bars"></i> Add Row</button>
+    <div id="screen"> </div>
+    <br>
+    <label>**if u want to make drop down then copy lable field text entered and enter values in name field by clicking new row button</label>
+    <br>
+    <button id="save_config_btn" onclick="submit()" >Save Configuration</button>
+    <button id="user_page_btn" onclick="backtohome()">Back to Home Page</button>
+    <form id="TheForm" method="post" action="/configpages" target="TheWindow">
+    <input type="hidden" name="something" value="something" />
+    <input type="hidden" name="more" value="something" />
+    <input type="hidden" name="other" value="something" />
+    </form>
+  </body>
+</html>

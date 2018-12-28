@@ -1,0 +1,2 @@
+node-red-dashboard,category-name-function&my-node,npm,sqlite,mongodb
+

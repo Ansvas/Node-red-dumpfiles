@@ -1,0 +1,17 @@
+{
+  "name": "createdb",
+  "version": "1.0.0",
+  "description": "node-to insert values in db",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "anshul",
+  "license": "ISC",
+  "node-red" : {
+        "nodes": {
+            "createdb": "insert.js"
+        }
+    }
+}
+
